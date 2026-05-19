@@ -1,0 +1,26 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$autoload = __DIR__ . '/../vendor/autoload.php';
+if (!file_exists($autoload)) {
+    $autoload = __DIR__ . '/../../autoload.php';
+}
+require $autoload;
+
+use Maarheeze\CodeGraph\Commands\IndexCommand;
+use Maarheeze\CodeGraph\Commands\InitCommand;
+use Maarheeze\CodeGraph\Commands\McpCommand;
+use Maarheeze\CodeGraph\Commands\StatusCommand;
+use Maarheeze\CodeGraph\Commands\WatchCommand;
+use Symfony\Component\Console\Application;
+
+$app = new Application('CodeGraph', '1.0.0');
+$app->addCommand(new InitCommand());
+$app->addCommand(new IndexCommand());
+$app->addCommand(new McpCommand());
+$app->addCommand(new StatusCommand());
+$app->addCommand(new WatchCommand());
+
+exit($app->run());

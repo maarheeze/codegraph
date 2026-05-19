@@ -1,0 +1,38 @@
+{
+    "name": "maarheeze/codegraph",
+    "description": "local php code indexing for ai assistants",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.3",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
+        "nikic/php-parser": "^5.0",
+        "symfony/finder": "^8.0",
+        "symfony/console": "^8.0",
+        "webmozart/assert": "^2.3"
+    },
+    "require-dev": {
+        "maarheeze/phpcs": "^1.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.0",
+        "maarheeze/guidelines": "^1.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Maarheeze\\CodeGraph\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Maarheeze\\CodeGraph\\Tests\\": "tests/"
+        }
+    },
+    "bin": ["bin/codegraph"],
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}
