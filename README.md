@@ -28,13 +28,13 @@ Works with [Claude Code](https://claude.com/claude-code), [Cursor](https://curso
 ## Installation
 
 ```bash
-composer require maarheeze/codegraph
+composer require maarheeze/codegraph --dev
 php vendor/bin/codegraph init
 php vendor/bin/codegraph index
 ```
 
 That's it. CodeGraph will:
-1. Create a `.codegraph/` directory with SQLite database
+1. Create a `.codegraph/` directory with SQLite database (should be ignored by git!)
 2. Scan your code (`app/` and `src/` directories by default)
 3. Extract symbols, relationships, and code structure
 4. Build the index
@@ -47,14 +47,19 @@ For continuous development, keep CodeGraph in sync automatically:
 php vendor/bin/codegraph watch
 ```
 
-This watches your code for changes and reindexes automatically. Press `Ctrl+C` to stop.
 
-Add to `.gitignore`:
-```
-.codegraph/
-```
+This watches your code for changes and reindexes automatically. Press `Ctrl+C` to stop. To automatically initialize and index your codebase after dependencies are installed or updated, add the following to your `composer.json`:
 
-The index is generated locally and should not be committed to git.
+```json
+{
+  "scripts": {
+    "post-autoload-dump": [
+      "@php artisan codegraph:init",
+      "@php artisan codegraph:index"
+    ]
+  }
+}
+```
 
 Verify it worked:
 
@@ -62,7 +67,7 @@ Verify it worked:
 php vendor/bin/codegraph status
 ```
 
-This shows how many symbols, edges, and files were indexed.
+This shows how many symbols, edges, and files were indexed. 
 
 ## Usage
 
