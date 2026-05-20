@@ -165,6 +165,8 @@ final readonly class InitializationService
             }
         }
 
+        $changed = false;
+
         if (!array_key_exists('enabledMcpjsonServers', $config)) {
             $config['enabledMcpjsonServers'] = [];
         }
@@ -177,6 +179,35 @@ final readonly class InitializationService
         if (!in_array('codegraph', $enabledServers, true)) {
             $enabledServers[] = 'codegraph';
             $config['enabledMcpjsonServers'] = $enabledServers;
+            $changed = true;
+        }
+
+        if (!array_key_exists('permissions', $config)) {
+            $config['permissions'] = [];
+        }
+
+        $permissions = $config['permissions'];
+        if (!is_array($permissions)) {
+            $permissions = [];
+        }
+
+        if (!array_key_exists('allow', $permissions)) {
+            $permissions['allow'] = [];
+        }
+
+        $allow = $permissions['allow'];
+        if (!is_array($allow)) {
+            $allow = [];
+        }
+
+        if (!in_array('codegraph_.*', $allow, true)) {
+            $allow[] = 'codegraph_.*';
+            $permissions['allow'] = $allow;
+            $config['permissions'] = $permissions;
+            $changed = true;
+        }
+
+        if ($changed) {
             $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
             file_put_contents($settingsPath, $json);
         }
