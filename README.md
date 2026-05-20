@@ -54,8 +54,8 @@ This watches your code for changes and reindexes automatically. Press `Ctrl+C` t
 {
   "scripts": {
     "post-autoload-dump": [
-      "@php artisan codegraph:init",
-      "@php artisan codegraph:index"
+      "@php artisan codegraph:init || true",
+      "@php artisan codegraph:index || true"
     ]
   }
 }
