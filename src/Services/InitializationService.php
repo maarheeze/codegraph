@@ -190,14 +190,23 @@ final readonly class InitializationService
         if ($mcpConfig === 'sail') {
             return [
                 'command' => 'vendor/bin/sail',
-                'args' => ['php', 'vendor/bin/codegraph', 'mcp'],
+                'args' => ['php', 'vendor/bin/codegraph', 'mcp', '--root=/var/www/html'],
             ];
         }
 
         if ($mcpConfig === 'docker') {
             return [
                 'command' => 'docker',
-                'args' => ['compose', 'exec', '-it', 'laravel.test', 'php', 'vendor/bin/codegraph', 'mcp'],
+                'args' => [
+                    'compose',
+                    'exec',
+                    '-it',
+                    'laravel.test',
+                    'php',
+                    'vendor/bin/codegraph',
+                    'mcp',
+                    '--root=/var/www/html',
+                ],
             ];
         }
 
@@ -214,14 +223,23 @@ final readonly class InitializationService
         if (file_exists($sailPath)) {
             return [
                 'command' => 'vendor/bin/sail',
-                'args' => ['php', 'vendor/bin/codegraph', 'mcp'],
+                'args' => ['php', 'vendor/bin/codegraph', 'mcp', '--root=/var/www/html'],
             ];
         }
 
         if (file_exists($dockerComposePath)) {
             return [
                 'command' => 'docker',
-                'args' => ['compose', 'exec', '-it', 'laravel.test', 'php', 'vendor/bin/codegraph', 'mcp'],
+                'args' => [
+                    'compose',
+                    'exec',
+                    '-it',
+                    'laravel.test',
+                    'php',
+                    'vendor/bin/codegraph',
+                    'mcp',
+                    '--root=/var/www/html',
+                ],
             ];
         }
 
