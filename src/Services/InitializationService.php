@@ -12,6 +12,7 @@ use function array_key_exists;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
+use function in_array;
 use function is_array;
 use function is_dir;
 use function json_decode;
@@ -47,6 +48,9 @@ final readonly class InitializationService
 
         $this->registerMcpServer($projectRoot, $mcpConfig);
         $lines[] = '<info>Registered CodeGraph MCP server in .mcp.json</info>';
+
+        $this->registerClaudeCodeMcpServer($projectRoot);
+        $lines[] = '<info>Registered CodeGraph MCP server in .claude/settings.local.json</info>';
 
         return [
             'lines' => $lines,
@@ -144,6 +148,38 @@ final readonly class InitializationService
         $config['mcpServers'] = $mcpServers;
 
         file_put_contents($mcpJsonPath, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
+    }
+
+    private function registerClaudeCodeMcpServer(string $projectRoot): void
+    {
+        $settingsPath = sprintf('%s/.claude/settings.local.json', $projectRoot);
+
+        $config = [];
+        if (file_exists($settingsPath)) {
+            $content = file_get_contents($settingsPath);
+            if ($content !== false) {
+                $decoded = json_decode($content, true);
+                if (is_array($decoded)) {
+                    $config = $decoded;
+                }
+            }
+        }
+
+        if (!array_key_exists('enabledMcpjsonServers', $config)) {
+            $config['enabledMcpjsonServers'] = [];
+        }
+
+        $enabledServers = $config['enabledMcpjsonServers'];
+        if (!is_array($enabledServers)) {
+            $enabledServers = [];
+        }
+
+        if (!in_array('codegraph', $enabledServers, true)) {
+            $enabledServers[] = 'codegraph';
+            $config['enabledMcpjsonServers'] = $enabledServers;
+            $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+            file_put_contents($settingsPath, $json);
+        }
     }
 
     /**
