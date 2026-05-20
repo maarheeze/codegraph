@@ -30,6 +30,9 @@
         }
     },
     "bin": ["bin/codegraph"],
+    "suggest": {
+        "maarheeze/codegraph-laravel": "Adds Laravel-specific extractors: routes, Eloquent relations, and service container bindings"
+    },
     "config": {
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true
