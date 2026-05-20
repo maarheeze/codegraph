@@ -3,11 +3,7 @@
 
 declare(strict_types=1);
 
-$autoload = __DIR__ . '/../vendor/autoload.php';
-if (!file_exists($autoload)) {
-    $autoload = __DIR__ . '/../../autoload.php';
-}
-require $autoload;
+include $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
 
 use Maarheeze\CodeGraph\Commands\IndexCommand;
 use Maarheeze\CodeGraph\Commands\InitCommand;
