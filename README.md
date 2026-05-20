@@ -11,8 +11,6 @@ CodeGraph indexes your PHP code structure (classes, methods, functions, and rela
 - 💰 **Cheaper** — Use fewer tokens, no need to pass file contents  
 - 🔍 **Accurate** — Structured data about code relationships, not guesses
 
-> **✅ Tested & Proven:** CodeGraph has been benchmarked on real Laravel projects and consistently delivers faster responses and reduced token usage compared to manual file searching. Results vary by project size and complexity, but the benefits are significant across the board.
-
 Ask your AI agent questions directly:
 - "Who calls this method?"
 - "What breaks if I change this class?"
@@ -105,7 +103,7 @@ If you need to manually configure `.mcp.json`:
 
 Replace `vendor/bin/sail` with:
 - `php` for plain PHP projects
-- `docker` with args `["compose", "exec", "-it", "laravel.test", "php", "vendor/bin/codegraph", "mcp"]` for Docker Compose
+- `docker` with args `["compose", "exec", "-it", "app", "php", "vendor/bin/codegraph", "mcp"]` for Docker Compose (replace `app` with your actual service name)
 
 **Then ask Claude Code:**
 
@@ -131,7 +129,7 @@ php vendor/bin/codegraph init
 
 Optional: Explicitly set MCP configuration (auto-detected by default):
 ```bash
-# Use Laravel Sail
+# Use Sail
 php vendor/bin/codegraph init sail
 
 # Use Docker Compose
@@ -142,8 +140,8 @@ php vendor/bin/codegraph init php
 ```
 
 If not specified, CodeGraph auto-detects your environment:
-- Checks for `vendor/bin/sail` (Laravel Sail) → uses Sail
-- Checks for `docker-compose.yml` (Docker Compose) → uses Docker
+- Checks for `vendor/bin/sail` → uses Sail
+- Checks for `docker-compose.yml` → uses Docker
 - Falls back to plain PHP otherwise
 
 **`index`** — Index your code (tracks changes, only re-parses what changed)
@@ -225,8 +223,7 @@ php vendor/bin/codegraph index
 ## Roadmap
 
 - [ ] **100% code coverage** — Comprehensive unit and integration tests
-- [ ] **Benchmark improvements** — We've seen significant improvements over manual file searching. Users can contribute real-world data on their projects to help us gather benchmarks.
-- [ ] **Index template files** — Support for Blade, Twig, or HTML templates (core package or plugin TBD)
+- [ ] **Index template files** — Support for Blade, Twig or HTML templates (core package or plugin TBD)
 - [ ] **Extensive documentation** — Architecture guides, API reference, plugin development docs
 
 ## Incremental Sync
@@ -244,14 +241,6 @@ To see what changed:
 ```bash
 php vendor/bin/codegraph status
 ```
-
-## For Laravel Projects
-
-See `maarheeze/codegraph-laravel` for Laravel-specific integration:
-- Auto-indexing
-- Artisan commands
-- Automatic MCP registration
-- Laravel-aware extraction (routes, models, services)
 
 ## API Usage (PHP)
 
@@ -287,15 +276,6 @@ CodeGraph uses SQLite with the following tables:
 - `files` — File metadata (paths, hashes, timestamps)
 
 Direct database queries are supported for custom analysis.
-
-## Performance
-
-Typical performance on a Laravel project with 100+ files:
-
-- **Initial index:** < 1 second per 100 files
-- **Incremental index:** < 100ms (changed files only)
-- **Search query:** < 50ms
-- **Database size:** 1-5 MB per 100 files
 
 ## License
 

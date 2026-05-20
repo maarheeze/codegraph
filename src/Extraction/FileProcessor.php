@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maarheeze\CodeGraph\Extraction;
 
+use Maarheeze\CodeGraph\Contracts\FileVisitor;
 use Maarheeze\CodeGraph\Extraction\Visitors\CallEdgeVisitor;
 use Maarheeze\CodeGraph\Extraction\Visitors\ChunkExtractor;
 use Maarheeze\CodeGraph\Extraction\Visitors\InheritanceEdgeVisitor;
@@ -12,6 +13,7 @@ use Maarheeze\CodeGraph\Extraction\Visitors\SignatureBuilder;
 use Maarheeze\CodeGraph\Extraction\Visitors\SymbolFactory;
 use Maarheeze\CodeGraph\Extraction\Visitors\SymbolVisitor;
 use Maarheeze\CodeGraph\Extraction\Visitors\TypeFormatter;
+use Maarheeze\CodeGraph\Plugin\PluginRegistry;
 use Maarheeze\CodeGraph\Storage\Sqlite\SqliteGraph;
 use Maarheeze\CodeGraph\Values\IndexStats;
 use PhpParser\Error;
@@ -28,6 +30,8 @@ final readonly class FileProcessor
     public function __construct(
         private SqliteGraph $graph,
         private Parser $parser,
+        private ExtractorRegistry $registry = new ExtractorRegistry(),
+        private PluginRegistry $pluginRegistry = new PluginRegistry(),
     ) {
     }
 
@@ -75,6 +79,18 @@ final readonly class FileProcessor
         $traverser->addVisitor($inheritanceVisitor);
         $traverser->addVisitor($callVisitor);
 
+        foreach ($this->registry->all() as $visitor) {
+            $traverser->addVisitor($visitor);
+        }
+
+        $pluginVisitors = [];
+        foreach ($this->pluginRegistry->getVisitors() as $visitorClass) {
+            $visitor = new $visitorClass($relPath, $contents);
+            Assert::isInstanceOf($visitor, FileVisitor::class);
+            $traverser->addVisitor($visitor);
+            $pluginVisitors[] = $visitor;
+        }
+
         $traverser->traverse($stmts);
 
         $symbols = $symbolVisitor->symbols();
@@ -92,6 +108,10 @@ final readonly class FileProcessor
             $inheritanceVisitor->edges(),
             $callVisitor->edges(),
         );
+
+        foreach ($pluginVisitors as $visitor) {
+            $edges = array_merge($edges, $visitor->edges());
+        }
 
         $this->graph->recordFile(
             $relPath,

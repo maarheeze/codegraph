@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Maarheeze\CodeGraph;
 
+use Maarheeze\CodeGraph\Contracts\Plugin;
 use Maarheeze\CodeGraph\Contracts\Storage;
 use Maarheeze\CodeGraph\Extraction\Indexer;
+use Maarheeze\CodeGraph\Plugin\PluginRegistry;
 use Maarheeze\CodeGraph\Storage\Sqlite\SqliteGraph;
 use Maarheeze\CodeGraph\Values\IndexStats;
 
@@ -15,6 +17,7 @@ use function sprintf;
 final class CodeGraph
 {
     private ?SqliteGraph $graph = null;
+    private PluginRegistry $pluginRegistry;
 
     /**
      * @param array<int, string> $scanPaths
@@ -25,7 +28,9 @@ final class CodeGraph
         private readonly string $dbPath,
         private readonly array $scanPaths = ['src', 'app'],
         private readonly array $excludes = ['vendor', 'node_modules', 'storage'],
+        ?PluginRegistry $pluginRegistry = null,
     ) {
+        $this->pluginRegistry = $pluginRegistry ?? new PluginRegistry();
     }
 
     public static function forProject(string $rootPath = '.'): self
@@ -45,7 +50,7 @@ final class CodeGraph
 
         return new self(
             $rootPath,
-            sprintf('%s/.codegraph/index.sqlite', $rootPath),
+            Paths::databasePath($rootPath),
             $scanPaths,
         );
     }
@@ -71,9 +76,15 @@ final class CodeGraph
             $this->scanPaths,
             ['php'],
             $this->excludes,
+            $this->pluginRegistry,
         );
 
         return $indexer->run();
+    }
+
+    public function registerPlugin(Plugin $plugin): void
+    {
+        $this->pluginRegistry->register($plugin);
     }
 
     /**

@@ -6,8 +6,9 @@ namespace Maarheeze\CodeGraph\Contracts;
 
 use Maarheeze\CodeGraph\Values\Edge;
 use Maarheeze\CodeGraph\Values\Symbol;
+use PhpParser\NodeVisitor;
 
-interface FileVisitor
+interface FileVisitor extends NodeVisitor
 {
     /**
      * @return array<int, Symbol>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maarheeze\CodeGraph\Extraction;
 
+use Maarheeze\CodeGraph\Plugin\PluginRegistry;
 use Maarheeze\CodeGraph\Storage\Sqlite\SqliteGraph;
 use Maarheeze\CodeGraph\Values\IndexStats;
 use PhpParser\ParserFactory;
@@ -29,10 +30,16 @@ final readonly class Indexer
         array $paths = ['app', 'src'],
         array $extensions = ['php'],
         array $excludes = ['node_modules', 'storage', 'vendor'],
+        PluginRegistry $pluginRegistry = new PluginRegistry(),
     ) {
         $this->discoverer = new FileDiscoverer($rootPath, $paths, $extensions, $excludes);
         $this->changeDetector = new FileChangeDetector($rootPath);
-        $this->processor = new FileProcessor($graph, (new ParserFactory())->createForHostVersion());
+        $this->processor = new FileProcessor(
+            $graph,
+            (new ParserFactory())->createForHostVersion(),
+            new ExtractorRegistry(),
+            $pluginRegistry,
+        );
         $this->changeAnalyzer = new FileChangeAnalyzer($graph);
     }
 

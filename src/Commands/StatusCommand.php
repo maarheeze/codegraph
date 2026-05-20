@@ -4,21 +4,14 @@ declare(strict_types=1);
 
 namespace Maarheeze\CodeGraph\Commands;
 
-use Maarheeze\CodeGraph\CodeGraph;
+use Maarheeze\CodeGraph\Paths;
+use Maarheeze\CodeGraph\Services\StatusService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use function count;
-use function file_exists;
-use function filesize;
-use function floor;
 use function getcwd;
-use function log;
-use function max;
-use function min;
-use function round;
 use function sprintf;
 
 #[AsCommand('status', 'Show index statistics')]
@@ -34,35 +27,19 @@ final class StatusCommand extends Command
             return Command::FAILURE;
         }
 
-        $codeGraph = CodeGraph::forProject($cwd);
-        $stats = $codeGraph->stats();
-        $dbPath = sprintf('%s/.codegraph/index.sqlite', $cwd);
-        $dbSize = 0;
+        $service = new StatusService(Paths::databasePath($cwd));
+        $result = $service->run();
 
-        if (file_exists($dbPath)) {
-            $dbSize = filesize($dbPath);
+        if ($result['error'] !== null) {
+            $output->writeln(sprintf('<error>Error: %s</error>', $result['error']));
+
+            return Command::FAILURE;
         }
 
-
-        $output->writeln('<info>CodeGraph Status:</info>');
-        $output->writeln(sprintf('  Symbols: <fg=cyan>%d</>', $stats['symbols']));
-        $output->writeln(sprintf('  Edges:   <fg=cyan>%d</>', $stats['edges']));
-        $output->writeln(sprintf('  Chunks:  <fg=cyan>%d</>', $stats['chunks']));
-        $output->writeln(sprintf('  Files:   <fg=cyan>%d</>', $stats['files']));
-        $output->writeln(sprintf('  DB path: <fg=cyan>%s</>', $dbPath));
-        $output->writeln(sprintf('  DB size: <fg=cyan>%s</>', $dbSize > 0 ? $this->formatBytes($dbSize) : 'N/A'));
+        foreach ($result['lines'] as $line) {
+            $output->writeln($line);
+        }
 
         return Command::SUCCESS;
-    }
-
-    private function formatBytes(int $bytes): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = (int) min($pow, count($units) - 1);
-        $bytes /= (1 << (10 * $pow));
-
-        return sprintf('%s %s', round($bytes, 2), $units[$pow]);
     }
 }
