@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maarheeze\CodeGraph\Tests\Feature\Mcp\Handlers;
 
 use Maarheeze\CodeGraph\Mcp\Handlers\ToolHandler;
+use Maarheeze\CodeGraph\Plugin\PluginRegistry;
 use Maarheeze\CodeGraph\Tests\Feature\FeatureTestCase;
 use Maarheeze\CodeGraph\Values\Chunk;
 use Maarheeze\CodeGraph\Values\Edge;
@@ -14,7 +15,7 @@ final class ToolHandlerTest extends FeatureTestCase
 {
     public function testSearchReturnsEmptyArrayWhenNoSymbols(): void
     {
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_search', ['name' => 'NonExistent']);
 
         self::assertIsArray($result);
@@ -40,7 +41,7 @@ final class ToolHandlerTest extends FeatureTestCase
 
         $this->database->recordFile('app/Services/UserService.php', 'hash123', 1000, 1234567890, [$symbol], [], []);
 
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_search', ['name' => 'UserService']);
 
         self::assertCount(1, $result);
@@ -50,7 +51,7 @@ final class ToolHandlerTest extends FeatureTestCase
 
     public function testCallersReturnsEmptyWhenNoCallers(): void
     {
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_callers', ['fqn' => 'App\Services\UserService::create']);
 
         self::assertIsArray($result);
@@ -70,7 +71,7 @@ final class ToolHandlerTest extends FeatureTestCase
 
         $this->database->recordFile('app/Controllers/UserController.php', 'hash123', 1000, 1234567890, [], [$edge], []);
 
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_callers', ['fqn' => 'App\Services\UserService::create']);
 
         self::assertCount(1, $result);
@@ -80,7 +81,7 @@ final class ToolHandlerTest extends FeatureTestCase
 
     public function testCalleesReturnsEmptyWhenNoCallees(): void
     {
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_callees', ['fqn' => 'App\Controllers\UserController::store']);
 
         self::assertIsArray($result);
@@ -100,7 +101,7 @@ final class ToolHandlerTest extends FeatureTestCase
 
         $this->database->recordFile('app/Controllers/UserController.php', 'hash123', 1000, 1234567890, [], [$edge], []);
 
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_callees', ['fqn' => 'App\Controllers\UserController::store']);
 
         self::assertCount(1, $result);
@@ -126,7 +127,7 @@ final class ToolHandlerTest extends FeatureTestCase
 
         $this->database->recordFile('app/Services/UserService.php', 'hash123', 1000, 1234567890, [$symbol], [], []);
 
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_blast_radius', ['fqn' => 'App\Services\UserService']);
 
         self::assertIsArray($result);
@@ -150,7 +151,7 @@ final class ToolHandlerTest extends FeatureTestCase
 
         $this->database->recordFile('app/Controllers/UserController.php', 'hash123', 1000, 1234567890, [], [$edge], []);
 
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_blast_radius', [
             'fqn' => 'App\Services\UserService::create',
             'depth' => 1,
@@ -162,7 +163,7 @@ final class ToolHandlerTest extends FeatureTestCase
 
     public function testSearchChunksReturnsEmptyWhenNoMatch(): void
     {
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_search_chunks', ['query' => 'nonexistent']);
 
         self::assertIsArray($result);
@@ -182,7 +183,7 @@ final class ToolHandlerTest extends FeatureTestCase
 
         $this->database->recordFile('app/Models/User.php', 'hash123', 1000, 1234567890, [], [], [$chunk]);
 
-        $handler = new ToolHandler($this->database);
+        $handler = new ToolHandler($this->database, new PluginRegistry());
         $result = $handler->handle('codegraph_search_chunks', ['query' => 'getName']);
 
         self::assertCount(1, $result);

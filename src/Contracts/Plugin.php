@@ -27,4 +27,9 @@ interface Plugin
      * @return array<int, array<string, mixed>>
      */
     public function getMcpTools(): array;
+
+    /**
+     * @return array<string, callable>
+     */
+    public function getMcpToolHandlers(): array;
 }

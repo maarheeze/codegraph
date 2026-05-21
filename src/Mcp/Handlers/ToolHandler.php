@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maarheeze\CodeGraph\Mcp\Handlers;
 
 use Maarheeze\CodeGraph\Contracts\Storage;
+use Maarheeze\CodeGraph\Plugin\PluginRegistry;
 use RuntimeException;
 use Webmozart\Assert\Assert;
 
@@ -17,6 +18,7 @@ final readonly class ToolHandler
 {
     public function __construct(
         private Storage $storage,
+        private PluginRegistry $pluginRegistry,
     ) {
     }
 
@@ -26,14 +28,30 @@ final readonly class ToolHandler
      */
     public function handle(string $name, array $arguments): array
     {
-        return match ($name) {
+        $result = match ($name) {
             'codegraph_search' => $this->search($arguments),
             'codegraph_callers' => $this->callers($arguments),
             'codegraph_callees' => $this->callees($arguments),
             'codegraph_blast_radius' => $this->blastRadius($arguments),
             'codegraph_search_chunks' => $this->searchChunks($arguments),
-            default => throw new RuntimeException(sprintf('Unknown tool: %s', $name)),
+            default => null,
         };
+
+        if ($result !== null) {
+            return $result;
+        }
+
+        foreach ($this->pluginRegistry->all() as $plugin) {
+            $handlers = $plugin->getMcpToolHandlers();
+            if (array_key_exists($name, $handlers)) {
+                $handler = $handlers[$name];
+                $result = $handler($arguments);
+                Assert::isArray($result);
+                return $result;
+            }
+        }
+
+        throw new RuntimeException(sprintf('Unknown tool: %s', $name));
     }
 
     /**

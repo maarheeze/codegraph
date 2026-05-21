@@ -24,7 +24,7 @@ final class McpServer
         Storage $storage,
         PluginRegistry $pluginRegistry,
     ) {
-        $this->toolHandler = new ToolHandler($storage);
+        $this->toolHandler = new ToolHandler($storage, $pluginRegistry);
         $this->toolRegistry = new McpToolRegistry($pluginRegistry);
     }
 
