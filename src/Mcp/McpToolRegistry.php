@@ -4,12 +4,33 @@ declare(strict_types=1);
 
 namespace Maarheeze\CodeGraph\Mcp;
 
+use Maarheeze\CodeGraph\Plugin\PluginRegistry;
+
 final readonly class McpToolRegistry
 {
+    public function __construct(
+        private PluginRegistry $pluginRegistry,
+    ) {
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
-    public static function tools(): array
+    public function tools(): array
+    {
+        $tools = $this->coreTools();
+
+        foreach ($this->pluginRegistry->all() as $plugin) {
+            $tools = [...$tools, ...$plugin->getMcpTools()];
+        }
+
+        return $tools;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function coreTools(): array
     {
         return [
             [

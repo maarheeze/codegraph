@@ -50,15 +50,16 @@ final readonly class McpResponseFormatter
     }
 
     /**
+     * @param array<int, array<string, mixed>> $tools
      * @return array<string, mixed>
      */
-    public static function toolsList(mixed $id, string $jsonrpc): array
+    public static function toolsList(mixed $id, string $jsonrpc, array $tools): array
     {
         return [
             'jsonrpc' => $jsonrpc,
             'id' => $id,
             'result' => [
-                'tools' => McpToolRegistry::tools(),
+                'tools' => $tools,
             ],
         ];
     }

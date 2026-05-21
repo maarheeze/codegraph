@@ -6,6 +6,7 @@ namespace Maarheeze\CodeGraph\Mcp;
 
 use Maarheeze\CodeGraph\Contracts\Storage;
 use Maarheeze\CodeGraph\Mcp\Handlers\ToolHandler;
+use Maarheeze\CodeGraph\Plugin\PluginRegistry;
 use RuntimeException;
 use Throwable;
 use Webmozart\Assert\Assert;
@@ -14,14 +15,17 @@ use function json_encode;
 use function php_sapi_name;
 use function sprintf;
 
-final readonly class McpServer
+final class McpServer
 {
-    private ToolHandler $toolHandler;
+    private readonly ToolHandler $toolHandler;
+    private readonly McpToolRegistry $toolRegistry;
 
     public function __construct(
         Storage $storage,
+        PluginRegistry $pluginRegistry,
     ) {
         $this->toolHandler = new ToolHandler($storage);
+        $this->toolRegistry = new McpToolRegistry($pluginRegistry);
     }
 
     public function start(): void
@@ -99,7 +103,7 @@ final readonly class McpServer
     {
         return match ($method) {
             'initialize' => McpResponseFormatter::initialize($id, $jsonrpc),
-            'tools/list' => McpResponseFormatter::toolsList($id, $jsonrpc),
+            'tools/list' => McpResponseFormatter::toolsList($id, $jsonrpc, $this->toolRegistry->tools()),
             'tools/call' => $this->handleToolCall($id, $jsonrpc, $params),
             default => McpResponseFormatter::error($id, $jsonrpc, -32601, 'Method not found'),
         };

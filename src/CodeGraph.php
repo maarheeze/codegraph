@@ -68,6 +68,11 @@ final class CodeGraph
         return $this->graph();
     }
 
+    public function getPluginRegistry(): PluginRegistry
+    {
+        return $this->pluginRegistry;
+    }
+
     public function index(): IndexStats
     {
         $indexer = new Indexer(

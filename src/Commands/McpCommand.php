@@ -29,7 +29,7 @@ final class McpCommand extends Command
             null,
             InputOption::VALUE_REQUIRED,
             'Project root directory',
-            '.'
+            '.',
         );
     }
 
@@ -39,7 +39,7 @@ final class McpCommand extends Command
             $root = $input->getOption('root');
             Assert::string($root);
             $codeGraph = CodeGraph::forProject($root);
-            $server = new McpServer($codeGraph->getStorage());
+            $server = new McpServer($codeGraph->getStorage(), $codeGraph->getPluginRegistry());
             $server->start();
         } catch (Throwable $e) {
             fwrite(STDERR, sprintf(

@@ -22,4 +22,9 @@ interface Plugin
      * @return array<int, class-string<FileVisitor>>
      */
     public function getVisitors(): array;
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getMcpTools(): array;
 }
