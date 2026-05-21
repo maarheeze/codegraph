@@ -42,12 +42,11 @@ final readonly class ToolHandler
         }
 
         foreach ($this->pluginRegistry->all() as $plugin) {
-            $handlers = $plugin->getMcpToolHandlers();
+            $handlers = $plugin->getMcpToolHandlers($this->storage);
             if (array_key_exists($name, $handlers)) {
                 $handler = $handlers[$name];
-                $result = $handler($arguments);
-                Assert::isArray($result);
-                return $result;
+
+                return $handler($arguments);
             }
         }
 

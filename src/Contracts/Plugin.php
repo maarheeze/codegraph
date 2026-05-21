@@ -29,7 +29,8 @@ interface Plugin
     public function getMcpTools(): array;
 
     /**
-     * @return array<string, callable>
+     * @param Storage $storage
+     * @return array<string, callable(array<string, mixed>): array<string|int, mixed>>
      */
-    public function getMcpToolHandlers(): array;
+    public function getMcpToolHandlers(Storage $storage): array;
 }
