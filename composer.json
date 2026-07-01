@@ -1,6 +1,7 @@
 {
     "name": "maarheeze/codegraph",
     "description": "local php code indexing for ai assistants",
+    "keywords": ["dev"],
     "type": "library",
     "license": "MIT",
     "require": {
