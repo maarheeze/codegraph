@@ -6,20 +6,22 @@ namespace Maarheeze\CodeGraph\Mcp\Handlers;
 
 use Maarheeze\CodeGraph\Contracts\Storage;
 use Maarheeze\CodeGraph\Plugin\PluginRegistry;
+use Maarheeze\CodeGraph\Services\QueryService;
 use RuntimeException;
 use Webmozart\Assert\Assert;
 
 use function array_key_exists;
-use function count;
 use function sprintf;
-use function substr;
 
 final readonly class ToolHandler
 {
+    private QueryService $queryService;
+
     public function __construct(
         private Storage $storage,
         private PluginRegistry $pluginRegistry,
     ) {
+        $this->queryService = new QueryService($storage);
     }
 
     /**
@@ -29,11 +31,14 @@ final readonly class ToolHandler
     public function handle(string $name, array $arguments): array
     {
         $result = match ($name) {
-            'codegraph_search' => $this->search($arguments),
-            'codegraph_callers' => $this->callers($arguments),
-            'codegraph_callees' => $this->callees($arguments),
-            'codegraph_blast_radius' => $this->blastRadius($arguments),
-            'codegraph_search_chunks' => $this->searchChunks($arguments),
+            'codegraph_search' => $this->queryService->search($this->stringArgument($arguments, 'name')),
+            'codegraph_callers' => $this->queryService->callers($this->stringArgument($arguments, 'fqn')),
+            'codegraph_callees' => $this->queryService->callees($this->stringArgument($arguments, 'fqn')),
+            'codegraph_blast_radius' => $this->queryService->blastRadius(
+                $this->stringArgument($arguments, 'fqn'),
+                $this->depthArgument($arguments),
+            ),
+            'codegraph_search_chunks' => $this->queryService->searchChunks($this->stringArgument($arguments, 'query')),
             default => null,
         };
 
@@ -55,124 +60,23 @@ final readonly class ToolHandler
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array<int, mixed>
      */
-    private function search(array $arguments): array
+    private function depthArgument(array $arguments): int
     {
-        $name = array_key_exists('name', $arguments) ? $arguments['name'] : null;
-        Assert::string($name);
-
-        $symbols = $this->storage->findByName($name);
-        $result = [];
-
-        foreach ($symbols as $symbol) {
-            $result[] = [
-                'kind' => $symbol->kind,
-                'name' => $symbol->name,
-                'fqn' => $symbol->fullyQualifiedName,
-                'file' => $symbol->file,
-                'line' => $symbol->startLine,
-                'signature' => $symbol->signature,
-            ];
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param array<string, mixed> $arguments
-     * @return array<int, mixed>
-     */
-    private function callers(array $arguments): array
-    {
-        $fqn = array_key_exists('fqn', $arguments) ? $arguments['fqn'] : null;
-        Assert::string($fqn);
-
-        $edges = $this->storage->findEdgesTo($fqn);
-        $result = [];
-
-        foreach ($edges as $edge) {
-            $result[] = [
-                'kind' => $edge->kind,
-                'caller' => $edge->sourceFullyQualifiedName,
-                'callee' => $edge->destinationFullyQualifiedName,
-                'file' => $edge->file,
-                'line' => $edge->line,
-            ];
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param array<string, mixed> $arguments
-     * @return array<int, mixed>
-     */
-    private function callees(array $arguments): array
-    {
-        $fqn = array_key_exists('fqn', $arguments) ? $arguments['fqn'] : null;
-        Assert::string($fqn);
-
-        $edges = $this->storage->findEdgesFrom($fqn);
-        $result = [];
-
-        foreach ($edges as $edge) {
-            $result[] = [
-                'kind' => $edge->kind,
-                'caller' => $edge->sourceFullyQualifiedName,
-                'callee' => $edge->destinationFullyQualifiedName,
-                'file' => $edge->file,
-                'line' => $edge->line,
-            ];
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param array<string, mixed> $arguments
-     * @return array<string, int|string|array<int, string>>
-     */
-    private function blastRadius(array $arguments): array
-    {
-        $fqn = array_key_exists('fqn', $arguments) ? $arguments['fqn'] : null;
         $depth = array_key_exists('depth', $arguments) ? $arguments['depth'] : 3;
-
-        Assert::string($fqn);
         Assert::integer($depth);
 
-        $affected = $this->storage->blastRadius($fqn, $depth);
-
-        return [
-            'query' => $fqn,
-            'depth' => $depth,
-            'affected_count' => count($affected),
-            'affected_symbols' => $affected,
-        ];
+        return $depth;
     }
 
     /**
      * @param array<string, mixed> $arguments
-     * @return array<int, mixed>
      */
-    private function searchChunks(array $arguments): array
+    private function stringArgument(array $arguments, string $key): string
     {
-        $query = array_key_exists('query', $arguments) ? $arguments['query'] : null;
-        Assert::string($query);
+        $value = array_key_exists($key, $arguments) ? $arguments[$key] : null;
+        Assert::string($value);
 
-        $chunks = $this->storage->searchChunks($query);
-        $result = [];
-
-        foreach ($chunks as $chunk) {
-            $result[] = [
-                'fqn' => $chunk->fullyQualifiedName,
-                'kind' => $chunk->kind,
-                'file' => $chunk->file,
-                'lines' => sprintf('%d-%d', $chunk->startLine, $chunk->endLine),
-                'body' => substr($chunk->body, 0, 500),
-            ];
-        }
-
-        return $result;
+        return $value;
     }
 }

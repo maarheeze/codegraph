@@ -20,7 +20,7 @@ Ask your AI agent questions directly:
 ## How It Works
 
 1. **Index your code** — `php vendor/bin/codegraph index` (one-time)
-2. **AI agent uses it** — Register CodeGraph as an MCP server (works with Claude Code and any MCP-compatible AI)
+2. **AI agent uses it** — either via [CLI query commands](#cli-queries-token-efficient-no-mcp) (cheapest, no always-on token cost) or by registering CodeGraph as an MCP server (works with Claude Code and any MCP-compatible AI)
 3. **Faster context** — AI queries the index instead of reading files
 
 Works with [Claude Code](https://claude.com/claude-code), [Cursor](https://cursor.sh), and any AI supporting MCP protocol.
@@ -38,6 +38,9 @@ That's it. CodeGraph will:
 2. Scan your code (`app/` and `src/` directories by default)
 3. Extract symbols, relationships, and code structure
 4. Build the index
+5. Add token-efficient CLI guidelines to your `CLAUDE.md` (no MCP server registered — see [CLI Queries](#cli-queries-token-efficient-no-mcp))
+
+Prefer the always-on MCP server instead? Run `php vendor/bin/codegraph init --mcp` (see [Claude Code Integration](#claude-code-integration)).
 
 **Optional: Auto-reindex on changes**
 
@@ -71,23 +74,40 @@ This shows how many symbols, edges, and files were indexed.
 
 ## Usage
 
-### CLI Search
+### CLI Queries (token-efficient, no MCP)
+
+Every MCP tool is also available as a CLI command that prints JSON to stdout. This is the **cheapest way to give an AI agent access**: an MCP server injects all of its tool definitions into the agent's context on *every* session (whether used or not), while a CLI is discovered once and only costs tokens when the agent actually runs it.
 
 ```bash
 php vendor/bin/codegraph search User
+php vendor/bin/codegraph callers '\App\Models\User::create'
+php vendor/bin/codegraph callees '\App\Models\User::create'
+php vendor/bin/codegraph blast-radius '\App\Models\User::create' --depth=3
+php vendor/bin/codegraph search-chunks 'payment provider'
 ```
+
+Each command returns the same structured JSON the MCP tools return, so an agent can parse the output directly. This is the **default**: `php vendor/bin/codegraph init` adds a hint to your `CLAUDE.md` pointing Claude Code at `php vendor/bin/codegraph <search|callers|callees|blast-radius|search-chunks>` — no `.mcp.json` entry, no always-on token cost.
+
+#### Migrating from MCP to the CLI
+
+If you previously ran `init` with MCP enabled, `init` will **not** overwrite the existing setup — it skips `CLAUDE.md` when it finds the `<!-- codegraph -->` marker and leaves your MCP config untouched. To switch a project fully to the CLI:
+
+1. Remove the `<!-- codegraph -->` … `<!-- /codegraph -->` block from `CLAUDE.md`
+2. Delete the `codegraph` entry from `.mcp.json`
+3. Remove `codegraph` from `enabledMcpjsonServers` in `.claude/settings.local.json`
+4. Re-run `php vendor/bin/codegraph init`
 
 ### Claude Code Integration
 
-CodeGraph works with Claude Code via the MCP protocol.
+CLI queries (above) are the default and the cheapest option. CodeGraph can also run as an MCP server if you prefer that workflow — but note that an MCP server injects all of its tool definitions into the agent's context on *every* session, whether used or not.
 
-**Automatic Setup (Recommended)**
+**Automatic Setup**
 
-Running `php vendor/bin/codegraph init` automatically:
+Running `php vendor/bin/codegraph init --mcp` automatically:
 1. Creates `.codegraph/` directory and SQLite database
 2. Detects your environment (Sail, Docker, or plain PHP)
 3. Configures `.mcp.json` with the correct MCP command
-4. Adds CodeGraph guidelines to your `CLAUDE.md`
+4. Adds CodeGraph MCP guidelines to your `CLAUDE.md`
 
 That's it! Claude Code will automatically discover and use CodeGraph's tools.
 
@@ -127,21 +147,26 @@ Replace `vendor/bin/sail` with:
 
 ## Commands
 
-**`init`** — Initialize CodeGraph in your project
+**`init`** — Initialize CodeGraph in your project (CLI query mode, no MCP)
 ```bash
 php vendor/bin/codegraph init
 ```
 
-Optional: Explicitly set MCP configuration (auto-detected by default):
+Opt into the MCP server instead with `--mcp`:
+```bash
+php vendor/bin/codegraph init --mcp
+```
+
+Optional: with `--mcp`, explicitly set the MCP command (auto-detected by default):
 ```bash
 # Use Sail
-php vendor/bin/codegraph init sail
+php vendor/bin/codegraph init --mcp sail
 
 # Use Docker Compose
-php vendor/bin/codegraph init docker
+php vendor/bin/codegraph init --mcp docker
 
 # Use plain PHP (no Docker)
-php vendor/bin/codegraph init php
+php vendor/bin/codegraph init --mcp php
 ```
 
 If not specified, CodeGraph auto-detects your environment:
@@ -169,9 +194,23 @@ php vendor/bin/codegraph status
 php vendor/bin/codegraph mcp
 ```
 
-**`search`** — CLI symbol search
+**Query commands** — token-efficient CLI alternative to the MCP tools, all printing JSON to stdout:
+
 ```bash
+# Find symbols by name or FQN
 php vendor/bin/codegraph search User
+
+# Who calls a symbol
+php vendor/bin/codegraph callers '\App\Models\User::create'
+
+# What a symbol calls / depends on
+php vendor/bin/codegraph callees '\App\Models\User::create'
+
+# Impact of changing a symbol (optional --depth, default 3)
+php vendor/bin/codegraph blast-radius '\App\Models\User::create' --depth=3
+
+# Full-text search across code bodies (FTS5 syntax)
+php vendor/bin/codegraph search-chunks 'payment provider'
 ```
 
 ## Configuration

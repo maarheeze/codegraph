@@ -5,17 +5,27 @@ declare(strict_types=1);
 
 include $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
 
+use Maarheeze\CodeGraph\Commands\BlastRadiusCommand;
+use Maarheeze\CodeGraph\Commands\CalleesCommand;
+use Maarheeze\CodeGraph\Commands\CallersCommand;
 use Maarheeze\CodeGraph\Commands\IndexCommand;
 use Maarheeze\CodeGraph\Commands\InitCommand;
 use Maarheeze\CodeGraph\Commands\McpCommand;
+use Maarheeze\CodeGraph\Commands\SearchChunksCommand;
+use Maarheeze\CodeGraph\Commands\SearchCommand;
 use Maarheeze\CodeGraph\Commands\StatusCommand;
 use Maarheeze\CodeGraph\Commands\WatchCommand;
 use Symfony\Component\Console\Application;
 
-$app = new Application('CodeGraph', '1.0.0');
-$app->addCommand(new InitCommand());
+$app = new Application('CodeGraph');
+$app->addCommand(new BlastRadiusCommand());
+$app->addCommand(new CalleesCommand());
+$app->addCommand(new CallersCommand());
 $app->addCommand(new IndexCommand());
+$app->addCommand(new InitCommand());
 $app->addCommand(new McpCommand());
+$app->addCommand(new SearchChunksCommand());
+$app->addCommand(new SearchCommand());
 $app->addCommand(new StatusCommand());
 $app->addCommand(new WatchCommand());
 

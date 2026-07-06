@@ -9,6 +9,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Webmozart\Assert\Assert;
 
@@ -23,8 +24,15 @@ final class InitCommand extends Command
         $this->addArgument(
             'mcp-config',
             InputArgument::OPTIONAL,
-            'MCP server configuration: auto (default), sail, docker, or php',
+            'MCP server configuration when using --mcp: auto (default), sail, docker, or php',
             'auto',
+        );
+
+        $this->addOption(
+            'mcp',
+            null,
+            InputOption::VALUE_NONE,
+            'Register the MCP server instead of the CLI (loads all tool definitions into context every session)',
         );
     }
 
@@ -41,8 +49,11 @@ final class InitCommand extends Command
         $mcpConfig = $input->getArgument('mcp-config');
         Assert::string($mcpConfig);
 
+        $registerMcp = $input->getOption('mcp');
+        Assert::boolean($registerMcp);
+
         $service = new InitializationService();
-        $result = $service->run($cwd, $mcpConfig);
+        $result = $service->run($cwd, $registerMcp, $mcpConfig);
 
         if ($result['error'] !== null) {
             $output->writeln(sprintf('<error>Error: %s</error>', $result['error']));
