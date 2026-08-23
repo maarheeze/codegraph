@@ -5,7 +5,7 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": ">=8.3",
+        "php": ">=8.4",
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-pdo_sqlite": "*",
@@ -15,9 +15,9 @@
         "webmozart/assert": "^2.3"
     },
     "require-dev": {
-        "maarheeze/phpcs": "^1.0",
+        "maarheeze/phpcs": "^2.0",
         "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^11.0",
+        "phpunit/phpunit": "^13.0",
         "maarheeze/guidelines": "^1.2"
     },
     "autoload": {
